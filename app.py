@@ -38,10 +38,14 @@ if "euros_saved" not in st.session_state:
 target_temp = target_occupied if is_occupied else target_unoccupied
 
 # 1. Régulation Chauffage (Hystérésis)
+previous_valve = st.session_state.valve
+
 if st.session_state.temp < (target_temp - hysteresis):
-    st.session_state.valve = min(100.0, st.session_state.valve + 20.0) 
+    st.session_state.valve = min(100.0, st.session_state.valve + 20.0)
 elif st.session_state.temp > (target_temp + hysteresis):
-    st.session_state.valve = max(0.0, st.session_state.valve - 25.0)  
+    st.session_state.valve = max(0.0, st.session_state.valve - 25.0)
+
+valve_change = st.session_state.valve - previous_valve
 
 # 2. Régulation Ventilation (CTA via niveau CO2)
 if not is_occupied:
@@ -60,7 +64,11 @@ else:
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("🌡️ Température Actuelle", f"{st.session_state.temp:.1f} °C", f"Consigne: {target_temp}°C", delta_color="off")
 col2.metric("💨 Qualité de l'air (CO2)", f"{st.session_state.co2} ppm", "Seuil max: 1000 ppm", delta_color="inverse")
-col3.metric("🔥 Vanne de Chauffage", f"{st.session_state.valve} %")
+col3.metric(
+    "🔥 Vanne de Chauffage",
+    f"{st.session_state.valve:.1f} %",
+    f"{valve_change:+.1f} %"
+)
 col4.metric("🌀 Vitesse CTA / Ventilo", f"Vitesse {st.session_state.cta}")
 
 # Graphique d'historique
